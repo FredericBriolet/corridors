@@ -1,0 +1,459 @@
+
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+	<title>Corridors</title>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="description" content="WebGL experiment made by Fred Briolet with three.js" />
+    <!--<link rel="icon" type="image/png" href="http://fredericbriolet.com/favicon3.png"/>-->
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	</head>
+	<style type="text/css">
+		body{
+			background: #000;
+			width: 100%;
+			max-width: 100%;
+			height: 100%;
+			max-height: 100%;
+			overflow: hidden;
+			margin: 0;
+			padding: 0;
+			outline: none;
+		}
+		canvas{
+			position: absolute;
+			width: 100%;
+			height: 100%;
+			top: 0;
+			left: 0;
+		 	z-index: 0;
+		 	outline: none;
+		}
+	</style>
+	<body id="body">
+
+		<script src="build/three.min.js"></script>
+		<script src="js/threex.keyboardstate.js"></script>
+	
+		<script>
+			var scene = new THREE.Scene();
+			var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
+			var clock = new THREE.Clock({ autostart: false });
+
+			var renderer = new THREE.WebGLRenderer();
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			document.body.appendChild( renderer.domElement );
+
+			// LIGHT
+			var light = new THREE.AmbientLight( 0x111111 );
+			scene.add( light );
+			var directionalLight = new THREE.DirectionalLight( 0x111111, 10 );
+			//scene.add( directionalLight );
+			var spotLight = new THREE.SpotLight( 0xffffff, 10, 1000 );
+			spotLight.position.set(0, 0, 1000);
+			spotLight.angle = Math.PI / 2;
+			spotLight.exponent = 9000;
+			spotLight.target.position.set(0,0,-10000);
+			scene.add( spotLight );
+
+			var spotLightHelper = new THREE.SpotLightHelper( spotLight );
+			scene.add( spotLightHelper );
+
+
+			// AUDIO
+			var Sound = function ( sources, radius, volume ) {
+				audio = document.createElement( 'audio' );
+				for ( var i = 0; i < sources.length; i ++ ) {
+					var source = document.createElement( 'source' );
+					source.src = sources[ i ];
+					audio.appendChild( source );
+				}
+				this.position = new THREE.Vector3();
+				this.play = function () {
+					audio.play();
+				}
+				this.update = function ( camera ) {
+					var distance = this.position.distanceTo( camera.position );
+					if ( distance <= radius ) {
+						audio.volume = volume * ( 1 - distance / radius );
+					} else {
+						audio.volume = 0;
+					}
+				}
+			}
+			sound1 = new Sound( [ 'sound.mp3' ], 275, 1 );
+			document.addEventListener("DOMContentLoaded", function(event) { 
+			  clock.start();
+			  sound1.play();
+			});
+
+			// OBJECTS
+			var steps = [];
+			var groups = [];
+			var stepXPosition = 0;
+			var createStep1 = function(){
+				var group = new THREE.Object3D();
+				var material = new THREE.MeshBasicMaterial( { color: 0x222222 } );
+				for (var i = 0; i < 100; i++) { 
+					var box = new THREE.Mesh( new THREE.BoxGeometry( 0.1, 0, 7 ), material );
+					box.position.x = stepXPosition;
+					box.position.y = -0.7;
+					box.position.z = -i*10;
+					group.add( box );
+				}
+				groups.push(group);
+			};
+			steps.push(createStep1);
+
+			var createStep2 = function(){
+				var group = new THREE.Object3D();
+				var material = new THREE.SpriteCanvasMaterial( {
+					color: 0xffffff
+				} );
+				var geometry = new THREE.Geometry(),
+						lines = geometry.vertices,
+						line;
+				for ( var i = 0; i < 27; i++ ) {
+					particle = new THREE.Sprite( material );
+					particle.matrixAutoUpdate = false;
+					particle.updateMatrix();
+					particle.position.x = stepXPosition;
+					particle.position.y = 0;
+					lines.push(
+						new THREE.Vector3( -5,  -5 , i-10 ),
+						new THREE.Vector3( -5, 5 , i-10 ),
+						new THREE.Vector3( 5, 5 , i-10 ),
+						new THREE.Vector3(  5 , -5 , i-10 ),
+						new THREE.Vector3( -5,  -5 , i-10 ),
+						particle.position.z = i
+					);
+
+					line = new THREE.Line( geometry, new THREE.LineBasicMaterial( { color: 0xaaaaaa } ) );
+					line.rotation.z = Math.PI/(i*100);
+					line.position.z = -i*6;
+					//line.position.x = stepXPosition;
+					group.add(line);
+					group.position.x = stepXPosition;
+					groups.push(group);
+				}
+			};
+			steps.push(createStep2);
+
+			/*var createStep3 = function(){
+				var group = new THREE.Object3D();
+				var material = new THREE.MeshPhongMaterial( { color: 0xffffff } );
+				for (var i = 0; i < 50; i++) {
+					var column = new THREE.Mesh( new THREE.BoxGeometry( 1, 100, 1 ), material );
+					column.position.x = -5;
+					if (i % 2 == 0) {
+						column.position.x = 5;
+					}
+					column.position.y = 0;
+					column.position.z = -i*2;
+					group.add(column);
+				}
+				group.position.x = stepXPosition;
+				console.log(stepXPosition);
+				console.log(column.position.x);
+				groups.push(group);
+			};
+			steps.push(createStep3); */
+			var createStep3 = function(){
+				var material = new THREE.MeshPhongMaterial( { color: 0xffffff } );
+				for (var i = 0; i < 6; i++) { // z 
+					for (var j = 0; j < 20; j++) { // colonne
+						for (var k = 0; k < 20; k++) { // ligne
+							var box = new THREE.Mesh( new THREE.BoxGeometry( 0.1, 0.1, 10 ), material );
+							box.position.x = (stepXPosition-57/2)+k*3;
+							box.position.y = (-57/2)+j*3;
+							box.position.z = -i*15;
+							scene.add( box );	
+						}
+					}
+				}
+			};
+			steps.push(createStep3);
+
+			var createStep4 = function(){
+				var radius   = 10,
+			    segments = 64,
+			    color = "0xffffff",
+			    material = new THREE.LineBasicMaterial( { color: color } ),
+			    geometry = new THREE.CircleGeometry( radius, segments );
+				geometry.vertices.shift();
+				for (var i = 0; i < 17; i++) {
+					if(i<10){
+						color = "0x"+i+i+i+i+i+i+"";
+					} else {
+						var letter = "a";
+						if(i === 11){
+							letter = "b";
+						} else if(i === 12){
+							letter = "c";
+						} else if(i === 13){
+							letter = "d";
+						} else if(i === 14){
+							letter = "d";
+						} else if(i === 15){
+							letter = "e";
+						} else if(i === 16){
+							letter = "c";
+						}
+						color = "0x"+letter+letter+letter+letter+letter+letter+"";
+					}
+					material = new THREE.LineBasicMaterial( { color: eval(color) } );
+					var line = new THREE.Line( geometry, material );
+					line.position.x = stepXPosition;
+					line.position.y = 0;
+					line.position.z = -50+i*3;
+					scene.add( line );
+				}
+			};
+			steps.push(createStep4);
+
+			var createStep5 = function(){
+				var material = new THREE.MeshPhongMaterial( { color: 0xffffff } );
+				var line1 = new THREE.Mesh( new THREE.BoxGeometry( 1, 1, 760 ), material );
+				var line2 = new THREE.Mesh( new THREE.BoxGeometry( 1, 1, 760 ), material );
+				line1.position.set(stepXPosition-15, -10, -10);
+				line2.position.set(stepXPosition+15, -10, -10);
+				scene.add(line1);
+				scene.add(line2);
+				for (var i = 0; i < 40; i++) {
+					var j = 0;
+					while(j < 2){
+						var column = new THREE.Mesh( new THREE.BoxGeometry( 1, 100, 1 ), material );
+						column.position.x = stepXPosition-15;
+						if (j % 2 == 0) {
+							column.position.x = stepXPosition+15;
+						}
+						column.position.y = 40;
+						column.position.z = -i*10;
+						scene.add( column );	
+						j = j+1;
+					}
+				}
+			};
+			steps.push(createStep5);
+
+			var createStep6 = function(){
+				var material = new THREE.MeshPhongMaterial( { color: 0xffffff } );
+				for (var i = 0; i < 6; i++) { // z 
+					for (var j = 0; j < 20; j++) { // colonne
+						for (var k = 0; k < 20; k++) { // ligne
+							var box = new THREE.Mesh( new THREE.BoxGeometry( 1, 1, 1 ), material );
+							box.position.x = (stepXPosition-57/2)+k*3;
+							box.position.y = (-57/2)+j*3;
+							box.position.z = -i*15;
+							scene.add( box );	
+						}
+					}
+				}
+			};
+			steps.push(createStep6);
+
+			var createStep7 = function(){
+				var material = new THREE.MeshPhongMaterial( { color: 0xffffff } );
+				var line1 = new THREE.Mesh( new THREE.BoxGeometry( 0.1, 10, 100 ), material );
+				line1.position.x = stepXPosition-2;
+				line1.position.z = -120;
+				line1.position.y = -1;
+				scene.add( line1 );
+				var line2 = new THREE.Mesh( new THREE.BoxGeometry( 0.1, 10, 100 ), material );
+				line2.position.x = stepXPosition+2;
+				line2.position.z = -120;
+				line2.position.y = -1;
+				scene.add( line2 );
+			};
+			steps.push(createStep7);
+
+			var createStep8 = function(){
+				var SUBDIVISIONS = 20;
+				var geometry = new THREE.Geometry();
+				var curve = new THREE.QuadraticBezierCurve3();
+				var color = new THREE.Color( 0xaaaaaa );
+				var lineMaterial = new THREE.LineBasicMaterial({color:color, linewidth: 1 });
+				for (var i = 0; i < 11; i++) {
+					var geometry = new THREE.Geometry();
+					curve.v0 = new THREE.Vector3( i-5,  0, -Math.abs(i-5) );
+					curve.v1 = new THREE.Vector3( i-5, (i-5)*(i-5), 50 );
+					curve.v2 = new THREE.Vector3( i-5, 0, 100);
+					for (j = 0; j < SUBDIVISIONS; j++) {
+						geometry.vertices.push( curve.getPoint(j / SUBDIVISIONS) )
+					}
+					var line = new THREE.Line(geometry, lineMaterial );
+					scene.add(line);
+					line.position.set(stepXPosition, -1, -106);
+				};
+			};
+			steps.push(createStep8);
+
+			var createStep9 = function(){
+				var material = new THREE.MeshPhongMaterial( { color: 0xffffff } );
+				for (var i = 0; i < 100; i++) { 
+					var row = new THREE.Mesh( new THREE.BoxGeometry( 1000, 0.1, 0.1 ), material );
+					row.position.x = stepXPosition;
+					row.position.y = -1;
+					row.position.z = -10*i;
+					scene.add( row );
+				}					
+			};
+			steps.push(createStep9);
+
+			var createStep10 = function(){				
+				var material = new THREE.SpriteCanvasMaterial( {
+					color: 0xffffff
+				} );
+				var geometry = new THREE.Geometry(),
+						lines = geometry.vertices,
+						line;
+				for ( var i = 0; i < 27; i++ ) {
+					particle = new THREE.Sprite( material );
+					particle.matrixAutoUpdate = false;
+					particle.updateMatrix();
+					particle.position.x = stepXPosition;
+					particle.position.y = 0;
+					lines.push(
+						new THREE.Vector3( -5,  -5 , i-10 ),
+						new THREE.Vector3( -5, 5 , i-10 ),
+						new THREE.Vector3( 5, 5 , i-10 ),
+						new THREE.Vector3(  5 , -5 , i-10 ),
+						new THREE.Vector3( -5,  -5 , i-10 ),
+						particle.position.z = i
+					);
+
+					line = new THREE.Line( geometry, new THREE.LineBasicMaterial( { color: 0xaaaaaa } ) );
+					line.rotation.z = Math.PI/i;
+					line.position.z = -i*6;
+					line.position.x = stepXPosition;
+					scene.add(line);
+				}
+			}
+			steps.push(createStep10);
+
+			var createStep11 = function(){				
+				var material = new THREE.SpriteCanvasMaterial( {
+					color: 0xffffff
+				} );
+				var geometry = new THREE.Geometry(),
+						lines = geometry.vertices,
+						line;
+				for ( var i = 0; i < 100; i++ ) {
+					particle = new THREE.Sprite( material );
+					particle.matrixAutoUpdate = false;
+					particle.updateMatrix();
+					particle.position.x = stepXPosition;
+					particle.position.y = 0;
+					lines.push(
+						new THREE.Vector3( -5, -5, -i*5 ),
+						new THREE.Vector3( 0, 5, -i*5 ),
+						new THREE.Vector3( 5, -5 , -i*5 ),
+						new THREE.Vector3( -5,  -5, -i*5 ),
+						particle.position.z = i
+					);
+
+					line = new THREE.Line( geometry, new THREE.LineBasicMaterial( { color: 0xaaaaaa } ) );
+					line.position.z = -10;
+					line.position.x = stepXPosition;
+					scene.add(line);
+				}
+			}
+			steps.push(createStep11);
+
+			var createStep12 = function(){
+				var material = new THREE.MeshPhongMaterial( { color: 0xffffff } );
+				for (var i = 0; i < 6; i++) { // z 
+					for (var j = 0; j < 20; j++) { // colonne
+						for (var k = 0; k < 20; k++) { // ligne
+							var box = new THREE.Mesh( new THREE.BoxGeometry( 0.1, 0.1, 10 ), material );
+							box.position.x = (stepXPosition-57/2)+k*3;
+							box.position.y = (-57/2)+j*3;
+							box.position.z = -i*15;
+							scene.add( box );	
+						}
+					}
+				}
+			};
+			steps.push(createStep12);
+
+			var createStep13 = function(){
+				var material = new THREE.MeshPhongMaterial( { color: 0xffffff } );
+				for (var i = 0; i < 6; i++) { // z 
+					for (var j = 0; j < 20; j++) { // colonne
+						for (var k = 0; k < 20; k++) { // ligne
+							var box = new THREE.Mesh( new THREE.BoxGeometry( 10, 0.1, 0.1 ), material );
+							box.position.x = (stepXPosition-57/2)+k*3;
+							box.position.y = (-57/2)+j*3;
+							box.position.z = -i*15;
+							scene.add( box );	
+						}
+					}
+				}
+			};
+			steps.push(createStep13);
+
+
+
+			var showStep = function(number){
+				camera.position.x = (1000*number);
+				camera.position.y = 0;
+				camera.position.z = 0;
+				//directionalLight.position.set( (1000*number), 10, 100 );
+				spotLight.position.set( (1000*number), 0, 900 );
+				spotLight.target.position.set( (1000*number),0,-10000);
+			};
+
+			var debugStep = function(n){
+				if(clock.getElapsedTime() > 2){
+					if(stepsVariables[n-1] === false){
+						showStep(n-1);
+						stepsVariables[n-1] = true;
+					}
+				}
+			};
+
+			camera.position.x = 0;
+			camera.position.y = 0;
+			camera.position.z = 0;
+
+			var timepoints = [27.9,33.4,38.8,44.3,49.8,55.5,60.7,66.6,72.2,77.7,83.2,88.6,94.5,100,105.6,111.1,116.6,122.6,128,134,138.8,144.9,150.5,156,161.5,167,173,178.8,184,189.7,195,201.4,206.6,212.4,217.7,223.6,229,234.7,240.6,246.8,252,257.8,263.8,269.9,275.5,281,287,292.6,288.6,304,310,315.6,321.7,327,333,338.8,345,350.8,356.7,362.4];
+
+			stepsVariables = [];
+			for (var i = 0; i <= steps.length - 1; i++) {
+				steps[i]();
+				stepXPosition += 1000;
+				scene.add(groups[i]);
+				stepsVariables.push(false);
+			};
+
+			var currentStep = 0;
+
+
+			var render = function () {
+
+
+				requestAnimationFrame( render );
+
+				if(clock.getElapsedTime() > timepoints[currentStep]){
+					if(stepsVariables[currentStep] === false){
+						showStep(currentStep+1);
+					}
+					currentStep += 1;
+				}
+
+				// debug, n = number of the slide to debug/create
+				//debugStep(3);
+
+				camera.position.z -= 0.1;
+				document.title = (clock.getElapsedTime());
+
+				renderer.render(scene, camera);
+			};
+
+			render();
+
+		</script>
+
+	</body>
+</html>
