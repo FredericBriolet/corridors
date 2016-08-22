@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 	<head>
@@ -60,6 +59,12 @@
 			var spotLightHelper = new THREE.SpotLightHelper( spotLight );
 			scene.add( spotLightHelper );
 
+			// standard materials
+			material = new THREE.MeshPhongMaterial( { color: 0xffffff } );
+			spriteMaterial = new THREE.SpriteCanvasMaterial( {
+				color: 0xffffff
+			} );
+
 
 			// AUDIO
 			var Sound = function ( sources, radius, volume ) {
@@ -108,14 +113,11 @@
 
 			var createStep2 = function(){
 				var group = new THREE.Object3D();
-				var material = new THREE.SpriteCanvasMaterial( {
-					color: 0xffffff
-				} );
 				var geometry = new THREE.Geometry(),
 						lines = geometry.vertices,
 						line;
 				for ( var i = 0; i < 27; i++ ) {
-					particle = new THREE.Sprite( material );
+					particle = new THREE.Sprite( spriteMaterial );
 					particle.matrixAutoUpdate = false;
 					particle.updateMatrix();
 					particle.position.x = stepXPosition;
@@ -140,27 +142,7 @@
 			};
 			steps.push(createStep2);
 
-			/*var createStep3 = function(){
-				var group = new THREE.Object3D();
-				var material = new THREE.MeshPhongMaterial( { color: 0xffffff } );
-				for (var i = 0; i < 50; i++) {
-					var column = new THREE.Mesh( new THREE.BoxGeometry( 1, 100, 1 ), material );
-					column.position.x = -5;
-					if (i % 2 == 0) {
-						column.position.x = 5;
-					}
-					column.position.y = 0;
-					column.position.z = -i*2;
-					group.add(column);
-				}
-				group.position.x = stepXPosition;
-				console.log(stepXPosition);
-				console.log(column.position.x);
-				groups.push(group);
-			};
-			steps.push(createStep3); */
 			var createStep3 = function(){
-				var material = new THREE.MeshPhongMaterial( { color: 0xffffff } );
 				for (var i = 0; i < 6; i++) { // z 
 					for (var j = 0; j < 20; j++) { // colonne
 						for (var k = 0; k < 20; k++) { // ligne
@@ -213,7 +195,6 @@
 			steps.push(createStep4);
 
 			var createStep5 = function(){
-				var material = new THREE.MeshPhongMaterial( { color: 0xffffff } );
 				var line1 = new THREE.Mesh( new THREE.BoxGeometry( 1, 1, 760 ), material );
 				var line2 = new THREE.Mesh( new THREE.BoxGeometry( 1, 1, 760 ), material );
 				line1.position.set(stepXPosition-15, -10, -10);
@@ -238,7 +219,6 @@
 			steps.push(createStep5);
 
 			var createStep6 = function(){
-				var material = new THREE.MeshPhongMaterial( { color: 0xffffff } );
 				for (var i = 0; i < 6; i++) { // z 
 					for (var j = 0; j < 20; j++) { // colonne
 						for (var k = 0; k < 20; k++) { // ligne
@@ -254,7 +234,6 @@
 			steps.push(createStep6);
 
 			var createStep7 = function(){
-				var material = new THREE.MeshPhongMaterial( { color: 0xffffff } );
 				var line1 = new THREE.Mesh( new THREE.BoxGeometry( 0.1, 10, 100 ), material );
 				line1.position.x = stepXPosition-2;
 				line1.position.z = -120;
@@ -290,7 +269,6 @@
 			steps.push(createStep8);
 
 			var createStep9 = function(){
-				var material = new THREE.MeshPhongMaterial( { color: 0xffffff } );
 				for (var i = 0; i < 100; i++) { 
 					var row = new THREE.Mesh( new THREE.BoxGeometry( 1000, 0.1, 0.1 ), material );
 					row.position.x = stepXPosition;
@@ -301,15 +279,12 @@
 			};
 			steps.push(createStep9);
 
-			var createStep10 = function(){				
-				var material = new THREE.SpriteCanvasMaterial( {
-					color: 0xffffff
-				} );
+			var createStep10 = function(){
 				var geometry = new THREE.Geometry(),
 						lines = geometry.vertices,
 						line;
 				for ( var i = 0; i < 27; i++ ) {
-					particle = new THREE.Sprite( material );
+					particle = new THREE.Sprite( spriteMaterial );
 					particle.matrixAutoUpdate = false;
 					particle.updateMatrix();
 					particle.position.x = stepXPosition;
@@ -332,15 +307,12 @@
 			}
 			steps.push(createStep10);
 
-			var createStep11 = function(){				
-				var material = new THREE.SpriteCanvasMaterial( {
-					color: 0xffffff
-				} );
+			var createStep11 = function(){
 				var geometry = new THREE.Geometry(),
 						lines = geometry.vertices,
 						line;
 				for ( var i = 0; i < 100; i++ ) {
-					particle = new THREE.Sprite( material );
+					particle = new THREE.Sprite( spriteMaterial );
 					particle.matrixAutoUpdate = false;
 					particle.updateMatrix();
 					particle.position.x = stepXPosition;
@@ -362,7 +334,6 @@
 			steps.push(createStep11);
 
 			var createStep12 = function(){
-				var material = new THREE.MeshPhongMaterial( { color: 0xffffff } );
 				for (var i = 0; i < 6; i++) { // z 
 					for (var j = 0; j < 20; j++) { // colonne
 						for (var k = 0; k < 20; k++) { // ligne
@@ -378,7 +349,6 @@
 			steps.push(createStep12);
 
 			var createStep13 = function(){
-				var material = new THREE.MeshPhongMaterial( { color: 0xffffff } );
 				for (var i = 0; i < 6; i++) { // z 
 					for (var j = 0; j < 20; j++) { // colonne
 						for (var k = 0; k < 20; k++) { // ligne
@@ -393,7 +363,33 @@
 			};
 			steps.push(createStep13);
 
+			var createStep14 = function(){
+				for (var i = 0; i < 120; i++) {
+					var box = new THREE.Mesh( new THREE.BoxGeometry( 0.02, 0.02, 1 ), material );
+					box.position.x = stepXPosition+Math.cos(i);
+					box.position.y = Math.sin(i);
+					box.position.z = -i;
+					box.rotation.z = Math.tan(i);
+					scene.add( box );	
+				}
+			};
+			steps.push(createStep14);
 
+			var createStep15 = function(){
+				for (var i = 0; i < 15; i++) { // z 
+					for (var j = 0; j < 5; j++) { // colonne
+						for (var k = 0; k < 10; k++) { // ligne
+							var box = new THREE.Mesh( new THREE.BoxGeometry( 0.05, 4, 1 ), material );
+							box.position.x = (stepXPosition-57/2)+k*8;
+							box.position.y = (-57/2)+j*14;
+							box.position.z = -i*7;
+							//box.rotation.x = i;
+							scene.add( box );	
+						}
+					}
+				}
+			};
+			steps.push(createStep15);
 
 			var showStep = function(number){
 				camera.position.x = (1000*number);
@@ -443,7 +439,7 @@
 				}
 
 				// debug, n = number of the slide to debug/create
-				//debugStep(3);
+				//debugStep(15);
 
 				camera.position.z -= 0.1;
 				document.title = (clock.getElapsedTime());
